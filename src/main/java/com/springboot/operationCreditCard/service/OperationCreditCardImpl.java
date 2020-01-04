@@ -1,6 +1,7 @@
 package com.springboot.operationCreditCard.service;
 
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,13 +10,13 @@ import org.springframework.stereotype.Service;
 
 import com.springboot.operationCreditCard.client.CreditCardClient;
 import com.springboot.operationCreditCard.client.CurrentAccountClient;
+import com.springboot.operationCreditCard.client.OperationAccountClient;
 import com.springboot.operationCreditCard.client.SavingAccountClient;
 import com.springboot.operationCreditCard.document.OperationCreditCard;
+import com.springboot.operationCreditCard.dto.OperationAccountDto;
 import com.springboot.operationCreditCard.dto.PaymentDto;
 import com.springboot.operationCreditCard.dto.PurchaseDto;
 import com.springboot.operationCreditCard.repo.OperationCreditCardRepo;
-import com.springboot.operationCreditCard.util.CodAccount;
-import com.springboot.operationCreditCard.util.TypeOperation;
 import com.springboot.operationCreditCard.util.UtilConvert;
 
 import reactor.core.publisher.Flux;
@@ -39,6 +40,10 @@ public class OperationCreditCardImpl implements OperationCreditCardInterface {
 	
 	@Autowired
 	CurrentAccountClient clientCurrent;
+	
+	@Autowired
+	OperationAccountClient clientOperationAccount;
+	
 
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(OperationCreditCardImpl.class);
@@ -82,77 +87,40 @@ public class OperationCreditCardImpl implements OperationCreditCardInterface {
 	
 	@Override
 	public Mono<OperationCreditCard> payment(PaymentDto paymentDto) {
-
 		
+		LOGGER.info("service 1: "+paymentDto.toString());
 		
-		if(paymentDto.getNumberAccount().substring(0,6).equals(CodAccount.COD_CURRENT_ACCOUNT)) {
 
-			repo.save(convert.convertCreditCardPayment(paymentDto)).flatMap(pago->{
-					
+	  return clientCard.findByNumberCard(paymentDto.getNumberCard()).flatMap(tarjeta->{
+
+		  return clientSavings.findByNumAccount(paymentDto.getNumberAccount()).flatMap(cuenta ->{
+
+			      return repo.save(convert.convertCreditCardPayment(paymentDto)).flatMap(operacion ->{
+	
+			    	  Double comision=0.0;
+			    	 
+					 if(cuenta.getIdOperation().size()>5) comision=10.0;
+				  
+				      LOGGER.info("service 2: "+operacion.toString());
 				
-//				clientSavings.findByNumAccount(paymentDto.getNumberAccount()).flatMap(cuenta->{
-//					
-//					
-//					 Double comision=0.00;
-//					 if(cuenta.getIdOperation().size()>TypeOperation.numMaxMovi)  comision=10.00;
-//					
-//					cuenta.setBalance((cuenta.getBalance()-paymentDto.getAmountPayment())-comision);
-//					cuenta.getIdOperation().add(pago.getId());
-//	    		    cuenta.setUpdateDate(new Date());
-//	    		    
-//	    		     return clientSavings.update(cuenta,cuenta.getId());
-//	
-//	    		   
-//					});
+					  cuenta.setBalance((cuenta.getBalance()+operacion.getAmountPayment()));
+		  		      cuenta.getIdOperation().add(operacion.getId());
+		  		      cuenta.setUpdateDate(new Date());
+		  		      clientSavings.update(cuenta,cuenta.getId()).block();
+					  
+					  return Mono.just(operacion);
+	
+			  });
 
-				return Mono.just(pago);
-			
-			});
-			
 
-	     }else if(paymentDto.getNumberAccount().substring(0,6).equals(CodAccount.COD_SAVINGS_ACCOUNT)) {
-	    	 
-	    	 LOGGER.info("Service 1 :"+paymentDto.getNumberAccount().substring(0,6));
-
-	    		repo.save(convert.convertCreditCardPayment(paymentDto)).flatMap(pago->{
-
-	    			LOGGER.info("Service 2 :"+pago.toString());
-					
-//					clientCurrent.findByNumAccount(paymentDto.getNumberAccount()).flatMap(cuenta->{
-//						
-//						LOGGER.info("Service 3 :"+cuenta.toString());
-//						
-//						 Double comision=0.00;
-//						 if(cuenta.getIdOperation().size()>TypeOperation.numMaxMovi)  comision=10.00;
-//						
-//						cuenta.setBalance((cuenta.getBalance()-paymentDto.getAmountPayment())-comision);
-//						cuenta.getIdOperation().add(pago.getId());
-//		    		    cuenta.setUpdateDate(new Date());
-//		    		    
-//		    		   return clientCurrent.update(cuenta,cuenta.getId());
-//		
-//		    		  
-//						});
-					
-					
-					
-					return Mono.just(pago);
-				
-				});
-				
-	    	 
-	    	 
-	    	 
-	     }
-
+		  });
+		  
 		
-		
-		
+	  });
+
 	}
 	
-	
-	
-	
+
 
 	@Override
 	public Mono<Void> delete(OperationCreditCard OperationCreditCard) {

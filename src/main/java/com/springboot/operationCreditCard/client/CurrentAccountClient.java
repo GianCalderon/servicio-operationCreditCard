@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -22,11 +24,11 @@ public class CurrentAccountClient {
 	
 private static final Logger LOGGER = LoggerFactory.getLogger(CurrentAccountClient.class);
 	
-//	@Autowired
-//	private WebClient client;
+	@Autowired
+	@Qualifier("currentAccount")
+	private WebClient client;
 
-WebClient client = WebClient.create("http://localhost:8004/api/currentAccount");
-	
+
 	public Flux<CurrentAccountDto> findAll() {
 		
 		return client.get().accept(MediaType.APPLICATION_JSON)
