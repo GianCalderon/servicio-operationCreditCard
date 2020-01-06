@@ -1,8 +1,5 @@
 package com.springboot.operationCreditCard.service;
 
-import java.util.Date;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +10,8 @@ import com.springboot.operationCreditCard.client.CurrentAccountClient;
 import com.springboot.operationCreditCard.client.OperationAccountClient;
 import com.springboot.operationCreditCard.client.SavingAccountClient;
 import com.springboot.operationCreditCard.document.OperationCreditCard;
-import com.springboot.operationCreditCard.dto.OperationAccountDto;
 import com.springboot.operationCreditCard.dto.PaymentDto;
+import com.springboot.operationCreditCard.dto.PaymentDto2;
 import com.springboot.operationCreditCard.dto.PurchaseDto;
 import com.springboot.operationCreditCard.repo.OperationCreditCardRepo;
 import com.springboot.operationCreditCard.util.UtilConvert;
@@ -64,63 +61,76 @@ public class OperationCreditCardImpl implements OperationCreditCardInterface {
 	@Override
 	public Mono<OperationCreditCard> purchase(PurchaseDto purchaseDto) {
 		
-		LOGGER.info("service 1: "+purchaseDto.toString());
+		
+		
+		 return clientCard.findByNumberCard(purchaseDto.getNumberCard()).flatMap(card->{
+			 
+			 LOGGER.info("service 1: "+card.toString());
+			 
+			 return repo.save(convert.convertCreditCardPurchase(purchaseDto)).flatMap(ope->{
+				 
+				LOGGER.info("service 2: "+ope.toString());
+				card.setAvailableBalance(card.getAvailableBalance()-ope.getAmountPayment());
+				
+				return clientCard.update(card, card.getId()).flatMap(g->{
+					
+					return Mono.just(ope);
+				});
 
-	   return clientCard.findByNumberCard(purchaseDto.getNumberCard()).flatMap(tarjeta->{
-		   
-		   LOGGER.info("service 2: "+tarjeta.toString());
-		 
-		   
-		   return repo.save(convert.convertCreditCardPurchase(purchaseDto)).flatMap(operacion ->{
-			   
-			   LOGGER.info("service 3: "+operacion.toString());
-			
-			   clientCard.update(tarjeta, tarjeta.getId()).block(); 
-			    
-			   return Mono.just(operacion);
-		   });
-		   
-		 
-		   
-	   });
+			 });
+
+		 });
 	}
 	
 	@Override
-	public Mono<OperationCreditCard> payment(PaymentDto paymentDto) {
-		
-		LOGGER.info("service 1: "+paymentDto.toString());
-		
+	public Mono<OperationCreditCard> paymentEfectivo(PaymentDto2 paymentDto2) {
 
-	  return clientCard.findByNumberCard(paymentDto.getNumberCard()).flatMap(tarjeta->{
-
-		  return clientSavings.findByNumAccount(paymentDto.getNumberAccount()).flatMap(cuenta ->{
-
-			      return repo.save(convert.convertCreditCardPayment(paymentDto)).flatMap(operacion ->{
-	
-			    	  Double comision=0.0;
-			    	 
-					 if(cuenta.getIdOperation().size()>5) comision=10.0;
-				  
-				      LOGGER.info("service 2: "+operacion.toString());
+		 return clientCard.findByNumberCard(paymentDto2.getNumberCard()).flatMap(card->{
+			 
+			 LOGGER.info("service 1: "+card.toString());
+			 
+			 return repo.save(convert.convertCreditCardPayment2(paymentDto2)).flatMap(ope->{
+				 
+				LOGGER.info("service 2: "+ope.toString());
+				card.setAvailableBalance(card.getAvailableBalance()+ope.getAmountPayment());
 				
-					  cuenta.setBalance((cuenta.getBalance()+operacion.getAmountPayment()));
-		  		      cuenta.getIdOperation().add(operacion.getId());
-		  		      cuenta.setUpdateDate(new Date());
-		  		      clientSavings.update(cuenta,cuenta.getId()).block();
-					  
-					  return Mono.just(operacion);
-	
+				return clientCard.update(card, card.getId()).flatMap(g->{
+					
+					return Mono.just(ope);
+				});
+
+			 });
+
+		 });
+	}
+
+  public Mono<OperationCreditCard> paymentAccount(PaymentDto paymentDto) {
+		
+
+	  return clientCard.findByNumberCard(paymentDto.getNumberCard()).flatMap(card->{
+		  
+		  return clientSavings.findByNumAccount(paymentDto.getNumberAccount()).flatMap(account->{
+			  
+			  account.setBalance(account.getBalance()-paymentDto.getAmountPayment());
+			  card.setAvailableBalance(card.getAvailableBalance()+paymentDto.getAmountPayment());
+			  
+			  return clientSavings.update(account, account.getId()).flatMap(cuentaAct->{
+				  
+				  return clientCard.update(card, card.getId()).flatMap(g->{
+						
+				       return repo.save(convert.convertCreditCardPayment(paymentDto));
+				  });
 			  });
-
-
+			  
 		  });
 		  
-		
 	  });
-
-	}
+	     
 	
 
+  }
+	
+	
 
 	@Override
 	public Mono<Void> delete(OperationCreditCard OperationCreditCard) {

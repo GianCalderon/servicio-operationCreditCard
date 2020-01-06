@@ -16,17 +16,13 @@ import lombok.Data;
 @Data
 public class CurrentAccountDto {
 	
-	
-
 	private String id;
 	private String nameAccount;
-	
+	private String nameBank;
+	private List<HeadlineDto> headlines;
 	private String numberAccount;
-	
 	private Double tea;
-	
 	private String state;
-	
 	private Double balance;
 	
 	@JsonFormat(pattern = "yyyy-MM-dd")
@@ -34,9 +30,6 @@ public class CurrentAccountDto {
 	
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date updateDate;
-	
-	private List<String> idOperation;
-
 
 
 }

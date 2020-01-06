@@ -2,6 +2,7 @@ package com.springboot.operationCreditCard.service;
 
 import com.springboot.operationCreditCard.document.OperationCreditCard;
 import com.springboot.operationCreditCard.dto.PaymentDto;
+import com.springboot.operationCreditCard.dto.PaymentDto2;
 import com.springboot.operationCreditCard.dto.PurchaseDto;
 
 import reactor.core.publisher.Flux;
@@ -17,7 +18,9 @@ public interface OperationCreditCardInterface {
 	  
 	  public Mono<OperationCreditCard> purchase(PurchaseDto purchaseDto);
 	  
-	  public Mono<OperationCreditCard> payment(PaymentDto paymentDto);
+	  public Mono<OperationCreditCard> paymentAccount(PaymentDto paymentDto);
+	  
+	  public Mono<OperationCreditCard> paymentEfectivo(PaymentDto2 paymentDto2);
 
 	  public Mono<OperationCreditCard> update(OperationCreditCard OperationCreditCard,String id);
 	  

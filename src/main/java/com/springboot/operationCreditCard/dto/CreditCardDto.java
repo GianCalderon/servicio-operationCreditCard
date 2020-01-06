@@ -11,7 +11,7 @@ public class CreditCardDto {
 	
 	
 	private String id;
-	private String numberDoc;
+	private String numDoc;
 	private String nameCard;
 	private String numberCard;
 	private String codeSecurity;

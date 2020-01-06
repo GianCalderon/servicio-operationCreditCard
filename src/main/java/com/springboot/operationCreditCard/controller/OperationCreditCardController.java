@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.springboot.operationCreditCard.document.OperationCreditCard;
 import com.springboot.operationCreditCard.dto.PaymentDto;
+import com.springboot.operationCreditCard.dto.PaymentDto2;
 import com.springboot.operationCreditCard.dto.PurchaseDto;
 import com.springboot.operationCreditCard.service.OperationCreditCardInterface;
 
@@ -64,7 +65,7 @@ public class OperationCreditCardController {
 	  public Mono<ResponseEntity<OperationCreditCard>> update(@RequestBody  OperationCreditCard operationCreditCard,@PathVariable String id) {
 
 	    return service.update(operationCreditCard, id)
-	             .map(m -> ResponseEntity.created(URI.create("/api/OperationCreditCard".concat(m.getId())))
+	             .map(m -> ResponseEntity.created(URI.create("/api/operationCreditCard".concat(m.getId())))
 	             .contentType(MediaType.APPLICATION_JSON).body(m))
 	             .defaultIfEmpty(ResponseEntity.notFound().build());
 
@@ -85,17 +86,27 @@ public class OperationCreditCardController {
 		  
 		  LOGGER.info("controller :"+purchaseDto.toString());
 
-	    return service.purchase(purchaseDto).map(m -> ResponseEntity.created(URI.create("/api/OperationCreditCard"))
+	    return service.purchase(purchaseDto).map(m -> ResponseEntity.created(URI.create("/api/operationCreditCard"))
 	                  .contentType(MediaType.APPLICATION_JSON).body(m));
 
 	  }
 	  
 	  @PostMapping("/payment")
+	  public Mono<ResponseEntity<OperationCreditCard>> payment(@RequestBody PaymentDto2 paymentDto2) {
+		  
+		  LOGGER.info("controller :"+paymentDto2.toString());
+
+	    return service.paymentEfectivo(paymentDto2).map(m -> ResponseEntity.created(URI.create("/api/operationCreditCard"))
+	                  .contentType(MediaType.APPLICATION_JSON).body(m));
+
+	  }
+	  
+	  @PostMapping("/paymentAccount")
 	  public Mono<ResponseEntity<OperationCreditCard>> payment(@RequestBody PaymentDto paymentDto) {
 		  
 		  LOGGER.info("controller :"+paymentDto.toString());
 
-	    return service.payment(paymentDto).map(m -> ResponseEntity.created(URI.create("/api/OperationCreditCard"))
+	    return service.paymentAccount(paymentDto).map(m -> ResponseEntity.created(URI.create("/api/operationCreditCard"))
 	                  .contentType(MediaType.APPLICATION_JSON).body(m));
 
 	  }

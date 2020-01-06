@@ -94,15 +94,13 @@ private static final Logger LOGGER = LoggerFactory.getLogger(SavingAccountClient
 				   .bodyToMono(SavingAccountDto.class);
 	}
 	
-	public Mono<SavingAccountDto> findByNumAccount(String numCuenta) {
+	public Mono<SavingAccountDto> findByNumAccount(String numberAccount) {
 		
-		LOGGER.info("NUMERO DE CUENTA :--->"+numCuenta);
+		LOGGER.info("NUMERO DE CUENTA :--->"+numberAccount);
+
 		
-		Map<String,Object> param=new HashMap<String,Object>();
-		
-		param.put("numCuenta", numCuenta);
-		
-		return client.get().uri("/cuenta/{numCuenta}",param)
+		return client.get()
+				.uri("/account/{numberAccount}",Collections.singletonMap("numberAccount",numberAccount))
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.bodyToMono(SavingAccountDto.class);

@@ -95,10 +95,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CreditCardClient.cl
 	
 	public Mono<CreditCardDto> findByNumberCard(String numberCard) {
 		
-		LOGGER.info("NUMERO DE CUENTA :--->"+numberCard);
+		LOGGER.info("Numero de Tarjeta:--->"+numberCard);
 		
 		return client.get()
-				.uri("/tarjeta/{numCuenta}",Collections.singletonMap("numCuenta",numberCard))
+				.uri("/numCard/{numCard}",Collections.singletonMap("numCard",numberCard))
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.bodyToMono(CreditCardDto.class);
